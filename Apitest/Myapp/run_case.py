@@ -117,6 +117,7 @@ class Test(unittest.TestCase):
                 response = requests.request(api_method.upper(), url, headers=header, data=api_body.encode('utf-8'))
             response.encoding = "utf-8"
             res = response.text
+            DB_host.objects.update_or_create(host=api_host)
         print('[返回体]:', res)
         # 对返回值res进行提取：
 

@@ -81,11 +81,12 @@ def child_json(eid, oid='', ooid=''):
     if eid == 'home.html':
         data = DB_home_href.objects.all()
         home_log = DB_apis_log.objects.filter(user_id=oid)[::-1]
+        hosts = DB_host.objects.all()
         if ooid == '':
-            res = {"hrefs": data, "home_log": home_log}
+            res = {"hrefs": data, "home_log": home_log, "hosts": hosts}
         else:
             log = DB_apis_log.objects.filter(id=ooid)[0]
-            res = {"hrefs": data, "home_log": home_log, "log": log}
+            res = {"hrefs": data, "home_log": home_log, "log": log, "hosts": hosts}
     if eid == 'project_list.html':
         data = DB_project.objects.all()
         res = {"projects": data}
@@ -98,13 +99,16 @@ def child_json(eid, oid='', ooid=''):
             except:
                 i.short_url = ''
         project_header = DB_project_header.objects.filter(project_id=oid)
-        res = {"project": project, 'apis': apis, 'project_header': project_header}
+        hosts = DB_host.objects.all()
+        project_host = DB_project_host.objects.filter(project_id=oid)
+        res = {"project": project, 'apis': apis, 'project_header': project_header, "hosts": hosts, "project_host": project_host}
     if eid == 'P_cases.html':
         project = DB_project.objects.filter(id=oid)[0]
         cases = DB_cases.objects.filter(project_id=oid)
         apis = DB_apis.objects.filter(project_id=oid)
         project_header = DB_project_header.objects.filter(project_id=oid)
-        res = {'cases': cases, 'project': project, "apis": apis, 'project_header': project_header}
+        hosts = DB_host.objects.all()
+        res = {'cases': cases, 'project': project, "apis": apis, 'project_header': project_header, "hosts": hosts}
     if eid == 'P_project_set.html':
         project = DB_project.objects.filter(id=oid)[0]
         res = {"project": project}
@@ -272,36 +276,40 @@ def Api_send(request):
         url = ts_host + '/' + ts_url
     else:
         url = ts_host + ts_url
-    if ts_body_method == 'none':
-        response = requests.request(ts_method.upper(), url, headers=header, data={})
-    elif ts_body_method == 'form-data':
-        files = []
-        payload = {}
-        for i in eval(ts_api_body):
-            payload[i[0]] = i[1]
-        response = requests.request(ts_method.upper(), url, headers=header, data=payload, files=files)
-    elif ts_body_method == 'x-www-form-urlencoded':
-        header['Content-Type'] = 'application/x-www-form-urlencoded'
-        payload = {}
-        for i in eval(ts_api_body):
-            payload[i[0]] = i[1]
-        response = requests.request(ts_method.upper(), url, headers=header, data=payload)
-    else:
-        if ts_body_method == 'Text':
-            header['Content-Type'] = 'text/plain'
-        if ts_body_method == 'JavaScript':
-            header['Content-Type'] = 'text/plain'
-        if ts_body_method == 'Json':
-            header['Content-Type'] = 'text/plain'
-        if ts_body_method == 'Html':
-            header['Content-Type'] = 'text/plain'
-        if ts_body_method == 'Xml':
-            header['Content-Type'] = 'text/plain'
-        response = requests.request(ts_method.upper(), url, headers=header, data=ts_api_body.encode('utf-8'))
+    try:
+        if ts_body_method == 'none':
+            response = requests.request(ts_method.upper(), url, headers=header, data={})
+        elif ts_body_method == 'form-data':
+            files = []
+            payload = {}
+            for i in eval(ts_api_body):
+                payload[i[0]] = i[1]
+            response = requests.request(ts_method.upper(), url, headers=header, data=payload, files=files)
+        elif ts_body_method == 'x-www-form-urlencoded':
+            header['Content-Type'] = 'application/x-www-form-urlencoded'
+            payload = {}
+            for i in eval(ts_api_body):
+                payload[i[0]] = i[1]
+            response = requests.request(ts_method.upper(), url, headers=header, data=payload)
+        else:
+            if ts_body_method == 'Text':
+                header['Content-Type'] = 'text/plain'
+            if ts_body_method == 'JavaScript':
+                header['Content-Type'] = 'text/plain'
+            if ts_body_method == 'Json':
+                header['Content-Type'] = 'text/plain'
+            if ts_body_method == 'Html':
+                header['Content-Type'] = 'text/plain'
+            if ts_body_method == 'Xml':
+                header['Content-Type'] = 'text/plain'
+            response = requests.request(ts_method.upper(), url, headers=header, data=ts_api_body.encode('utf-8'))
 
-    # 把返回值传给前端
-    response.encoding = 'utf-8'
-    return HttpResponse(response.text)
+        # 把返回值传给前端
+        response.encoding = 'utf-8'
+        DB_host.objects.update_or_create(host=ts_host)
+        return HttpResponse(response.text)
+    except Exception as e:
+        return HttpResponse(str(e))
 
 
 # 复制接口
@@ -448,6 +456,7 @@ def Api_send_home(request):
 
         # 把返回值传递给前端页面
         response.encoding = "utf-8"
+        DB_host.objects.update_or_create(host=ts_host)
         return HttpResponse(response.text)
     except Exception as e:
         return HttpResponse(str(e))
@@ -486,6 +495,14 @@ def copy_case(request, eid, oid):
     old_case = DB_cases.objects.filter(id=oid)[0]
     DB_cases.objects.create(project_id=old_case.project_id, name=old_case.name+'_副本')
     return HttpResponseRedirect('/cases/%s/' % eid)
+
+
+# 保存用例名字
+def save_case_name(request):
+    id = request.GET['id']
+    name = request.GET['name']
+    DB_cases.objects.filter(id=id).update(name=name)
+    return HttpResponse('')
 
 
 # 获取小用例的数据
@@ -627,6 +644,27 @@ def save_project_header(request):
     return HttpResponse('')
 
 
+# 保存项目公共域名
+def save_project_host(request):
+    project_id = request.GET['project_id']
+    req_names = request.GET['req_names']
+    req_hosts = request.GET['req_hosts']
+    req_ids = request.GET['req_ids']
+    names = req_names.split(',')
+    hosts = req_hosts.split(',')
+    ids = req_ids.split(',')
+    for i in range(len(ids)):
+        if names[i] != '':
+            if ids[i] == 'new':
+                DB_project_host.objects.create(project_id=project_id,name=names[i],host=hosts[i])
+            else:
+                DB_project_host.objects.filter(id=ids[i]).update(name=names[i],host=hosts[i])
+        else:
+            try:
+                DB_project_host.objects.filter(id=ids[i]).delete()
+            except:
+                pass
+    return HttpResponse('')
 
 
 

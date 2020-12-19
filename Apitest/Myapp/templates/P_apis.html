@@ -54,7 +54,7 @@
     <div class="btn-group">
         <button type="button" class="btn btn-primary" onclick="document.location.href='/project_api_add/{{ project.id }}/'">新增接口</button>
         <button type="button" class="btn btn-default" onclick="project_header_div_show()">全局请求头</button>
-        <button type="button" class="btn btn-default">全局域名</button>
+        <button type="button" class="btn btn-default" onclick="project_host_div_show()">全局域名</button>
         <button type="button" class="btn btn-default">接口文档导入</button>
         <button type="button" class="btn btn-default">抓包导入</button>
         <button type="button" class="btn btn-default">加密算法</button>
@@ -104,7 +104,12 @@ color: white;padding-left: 10px">
     <br><br><br>
     <ul class="nav navbar-nav" style="width: 98%;">
         <li style="width: -webkit-calc(100% - 63px)">
-            <input id="ts_host" type="text" style="color:black;padding-left: 10px;width: 100%;height: 40px;" placeholder="host: 如http(s)://xxx.ccc.com" value="">
+            <datalist id="datalist_1">
+                {% for i in hosts %}
+                    <option value="{{ i.host }}" id="host_{{ i.id }}">{{ i.host }}</option>
+                {% endfor %}
+            </datalist>
+            <input list="datalist_1" autocomplete="off" id="ts_host" type="text" style="color:black;padding-left: 10px;width: 100%;height: 40px;" placeholder="host: 如http(s)://xxx.ccc.com" value="">
         </li>
         <li>
             <button type="button" onclick="ts_clear_host()" style="height: 40px;width: 60px" class="btn btn-default">Clear</button>
@@ -248,9 +253,28 @@ padding-left: 10px;background-color: white">
     </div>
     <br>
     <button onclick="add_project_header()">新增</button>
-
-
 </div>
+{# 全局域名 #}
+<div id="project_host_div" style="display: none;border-radius:5px;width: 70%;height: 70%;
+position: absolute;left: 15%;top: 15%;box-shadow: 4px 4px 8px grey;
+padding-left: 10px;background-color: white">
+    <div class="btn-group" style="float: right">
+        <button onclick="project_host_save()" type="button" class="btn btn-success">保存</button>
+        <button onclick="project_host_close()" type="button" class="btn btn-default">取消</button>
+    </div>
+    <h4>请设置本项目的全局公共请求头：</h4>
+    <div id="host_plan">
+        {% for i in project_host %}
+            <input type="text" name="host_id" value="{{ i.id }}" style="display: none;">
+            <input type="text" name="host_name" value="{{ i.name }}" style="width: 20%;margin-top: 3px" placeholder="name"> = "
+            <input type="text" name="host_host" value="{{ i.host }}" style="width: 70%" placeholder="host"> "
+            <br>
+        {% endfor %}
+    </div>
+    <br>
+    <button onclick="add_project_host()">新增</button>
+</div>
+{# 全局请求头 #}
 <script>
     function project_header_div_show() {
         document.getElementById('project_header_div').style.display = 'block';
@@ -746,7 +770,58 @@ padding-left: 10px;background-color: white">
         }
     }
 </script>
+{# 全局域名js #}
+<script>
+    function project_host_div_show() {
+        document.getElementById('project_host_div').style.display = 'block';
+    }
+    function project_host_close() {
+        document.location.reload()
+    }
+    function project_host_save() {
+        var names = document.getElementsByName('host_name');
+        var hosts = document.getElementsByName('host_host');
+        var ids = document.getElementsByName('host_id');
+        var req_names= [];
+        var req_hosts=[];
+        var req_ids=[];
+        for(var i=0;i<names.length;i++){
+            req_names.push(names[i].value);
+            req_hosts.push(hosts[i].value);
+            req_ids.push(ids[i].value)
 
+        }
+        $.get('/save_project_host/',{
+            "project_id":"{{ project.id }}",
+            "req_names":req_names.toString(),
+            "req_hosts":req_hosts.toString(),
+            "req_ids":req_ids.toString(),
+        },function (ret) {
+            document.location.reload();
+        })
+    }
+    function add_project_host() {
+        var host_plan = document.getElementById('host_plan');
+        var i0 = document.createElement('input');
+        i0.name = 'host_id';
+        i0.value = 'new';
+        i0.style.display ='none';
+        var i1 = document.createElement('input');
+        i1.style='width: 20%;margin-top: 3px';
+        i1.placeholder='name';
+        i1.name='host_name';
+        var i2 = document.createElement('input');
+        i2.style='width: 70%';
+        i2.placeholder='host';
+        i2.name='host_host';
+        host_plan.appendChild(i0);
+        host_plan.appendChild(i1);
+        host_plan.appendChild(document.createTextNode(' = " '));
+        host_plan.appendChild(i2);
+        host_plan.appendChild(document.createTextNode(' "'));
+        host_plan.appendChild(document.createElement("br"));
+    }
+</script>
 
 <div id="mengceng" style="display: none;opacity:0.5;position: absolute;left: 0;top: 100px;
                           background-color: gray;width: 100%">

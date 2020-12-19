@@ -42,7 +42,12 @@
         <br><br><br>
         <ul class="nav navbar-nav" style="width: 98%">
             <li style=" width: -webkit-calc(100% - 63px)">
-                 <input id="ts_host"  style="color: black;padding-left: 10px;width: 100%;height: 40px;" type="text" placeholder='host: 如http(s)://xxxx.ccc.com' value="{{ log.api_host }}">
+                <datalist id="datalist_1">
+                {% for i in hosts %}
+                    <option value="{{ i.host }}" id="host_{{ i.id }}">{{ i.host }}</option>
+                {% endfor %}
+                </datalist>
+                <input list="datalist_1" autocomplete="off" id="ts_host"  style="color: black;padding-left: 10px;width: 100%;height: 40px;" type="text" placeholder='host: 如http(s)://xxxx.ccc.com' value="{{ log.api_host }}">
             </li>
              <li >
                 <button type="button"
