@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>用例库</title>
+</head>
+<body>
+<nav class="navbar navbar-default" role="navigation"
+     style="position: absolute;top: 0px;left: 80px;width:-webkit-calc(100% - 200px);z-index: 1">
+    <div class="container-fluid">
+        <div class="navbar-header">
+            <span style="font-size: xx-small" class="navbar-brand">项目名称：{{ project.name }}</span>
+            <a class="navbar-brand" href="/project_list/">返回项目列表</a>
+        </div>
+        <div>
+            <ul class="nav navbar-nav">
+                <li><a href="/apis/{{ project.id }}/">接口库</a></li>
+                <li class="active"><a href="/cases/{{ project.id }}/">用例库</a></li>
+                <li><a href="/project_set/{{ project.id }}/">项目设置</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+<br><br>
+<table class="table table-striped">
+    <thead>
+    <tr>
+        <th style="width: 50px">id</th>
+        <th style="width: -webkit-calc(100% - 410px)">用例名称</th>
+        <th style="width: 450px">操作</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for i in cases %}
+        <tr>
+            <td>{{ i.id }}</td>
+            <td>{{ i.name }}</td>
+            <td>
+                <div class="btn-group" style="z-index: 0">
+                    <button id="run_btn_{{ i.id }}" class="btn btn-success" onclick="run_case('{{ i.id }}')">运行</button>
+                    <button class="btn btn-default" onclick="show_small('{{ i.id }}','{{ i.name }}')">设置</button>
+                    <a href="/look_report/{{ i.id }}/" target="_blank"><button class="btn btn-default" onclick="">查看报告</button></a>
+                    <a href="/copy_case/{{ project.id }}/{{ i.id }}">
+                        <button class="btn btn-default" onclick="">复制</button>
+                    </a>
+                    <a href="/del_case/{{ project.id }}/{{ i.id }}">
+                        <button class="btn btn-danger" onclick="">删除</button>
+                    </a>
+
+                </div>
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+<a href="/add_case/{{ project.id }}/">
+    <button style="margin-left: 10px" class="btn btn-primary">新增用例</button>
+</a>
+<div id="left_div" style="background-color: white;border: 1px solid black;z-index: 2;display: none;width: 35%;height: 100%;
+position: absolute;right: 100%;top: 0px;overflow-y: visible;text-align: center">
+    <button class="btn btn-default" onclick="add_new_step()">新增小用例接口</button>
+    <button class="btn btn-default">新增登陆态接口</button>
+    <button class="btn btn-danger" style="float: right" onclick="close_left_div()">关闭</button>
+    <div id="small_list">
+        {#    小用例    #}
+
+    </div>
+    <p style="position: absolute;bottom: 0;left: 5px">
+        用例id：<span id="case_id"></span>
+        用例名称：<span id="case_name"></span>
+    </p>
+</div>
+<div id="right_div" style="background-color: white;border: 1px solid black;z-index: 2;display: none;width: 62%;min-height: 100%;
+position: absolute;left: 100%;top: 0px;overflow-y: visible;text-align: center">
+
+    <button class="btn btn-success" style="float: left" onclick="close_right_div('save')">保存</button>
+    <button class="btn btn-default" style="float: left" onclick="close_right_div('')">取消</button>
+    <br>
+    <select name="" id="apis" style="margin-left: 25%;height: 35px;width: 50%;" class="form-control">
+        <option value="none">选择接口仓库接口</option>
+        {% for i in apis %}
+            <option value="{{ i.id }}">{{ i.name }}</option>
+        {% endfor %}
+
+    </select>
+    <div class="input-group" style="margin-top: 5px;margin-left: 25%;width: 50%">
+        <span class="input-group-addon">执行序号</span>
+        <input type="text" id="step_index" class="form-control">
+    </div>
+    <div class="input-group" style="margin-top: 5px;margin-left: 5%;width: 90%">
+        <span class="input-group-addon">步骤名称</span>
+        <input type="text" id="step_name" class="form-control">
+    </div>
+    <ul class="nav navbar-nav" style="margin-top: 5px;margin-left: 5%;width: 90%">
+        <li>
+            <select name="" id="step_method" style="height: 35px;" class="form-control">
+                <option value="null">请求方式</option>
+                <option value="post">POST</option>
+                <option value="get">GET</option>
+                <option value="put">PUT</option>
+                <option value="delete">DELETE</option>
+            </select>
+        </li>
+        <li style="width: -webkit-calc(100% - 105px)">
+            <input type="text" id="step_url" style="border-radius: 4px;border: 1px solid #cccccc;padding-left: 10px;width: 100%;
+            height: 35px;" placeholder="url: 如/aa/ddd/" value="">
+        </li>
+    </ul>
+    <div class="input-group" style="margin-top: 45px;margin-left: 5%;width: 90%">
+        <span class="input-group-addon">host</span>
+        <input type="text" id="step_host" class="form-control">
+    </div>
+    <div class="input-group" style="margin-top: 5px;margin-left: 5%;width: 90%">
+        <span class="input-group-addon">header</span>
+        <input type="text" id="step_header" class="form-control" style="width: -webkit-calc(100% - 61px)">
+        <button type="button" onclick="ts_show_project_header()" style="height: 34px;width: 60px;" class="btn btn-default"><span>▼</span></button>
+    </div>
+        <li id="ts_project_header_li" style="display: none">
+            {% for i in project_header %}
+                <label style="margin-left: 5px"><input type="checkbox" id="checkbox_{{ i.id }}" value="{{ i.id }}">{{ i.name }}</label>
+            {% endfor %}
+        </li>
+    <p style="position: absolute;bottom: 0;left: 5px">
+        用例id：<span id="step_id"></span>
+        用例名称：<span id="step_old_name"></span>
+    </p>
+    <ul id="myTab" class="nav nav-tabs" style="padding-left: 5%;margin-top: 5px">
+        <li class="active"><a id="click_none" href="#none" data-toggle="tab">none</a></li>
+        <li><a href="#form-data" data-toggle="tab">form-data</a></li>
+        <li><a href="#x-www-form-urlencoded" data-toggle="tab">x-www-form-urlencoded</a></li>
+        <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown">raw <b class="caret"></b></a>
+            <ul class="dropdown-menu" role="menu" aria-labelledby="myTabDrop1">
+                <li><a href="#Text" tabindex="-1" data-toggle="tab">Text</a></li>
+                <li><a href="#JavaScript" tabindex="-1" data-toggle="tab">JavaScript</a></li>
+                <li><a href="#Json" tabindex="-1" data-toggle="tab">Json</a></li>
+                <li><a href="#Html" tabindex="-1" data-toggle="tab">Html</a></li>
+                <li><a href="#Xml" tabindex="-1" data-toggle="tab">Xml</a></li>
+            </ul>
+        </li>
+    </ul>
+    <div id="myTabContent" class="tab-content">
+        <div class="tab-pane fade in active" id="none" style="text-align: center;color: grey">
+            <h3>这个请求将不会携带任何请求体</h3>
+            <h5>This request will not carry any request-body</h5>
+        </div>
+        <div class="tab-pane fade" id="form-data">
+            <div class="table-responsive" style="width: 98%;color: black">
+                <table class="table table-bordered table-striped" id="mytable" style="background-color:white">
+                    <thead id="mythead" style="color: #337ab7;font-size: x-small">
+                    <tr>
+                        <td style="width: 30%">Key</td>
+                        <td style="width: 50%">Value</td>
+                    </tr>
+                    </thead>
+                    <tbody id="mytbody">
+                    <tr>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <button class="btn btn-default" id="add"><i class="fa fa-plus"></i> 添加新参数</button>
+            <script>window.jQuery || document.write('<script src="/static/201801271505/js/jquery-1.11.0.min.js"><\/script>')</script>
+            <script type="text/javascript" src="/static/201801271505/js/bootstable.js"></script>
+        </div>
+        <div class="tab-pane fade" id="x-www-form-urlencoded">
+            <div class="table-responsive" style="width: 98%;color: black">
+                <table class="table table-bordered table-striped" id="mytable2" style="background-color:white">
+                    <thead id="mythead2" style="color: #337ab7;font-size: x-small">
+                    <tr>
+                        <td style="width: 30%">Key</td>
+                        <td style="width: 50%">Value</td>
+                    </tr>
+                    </thead>
+                    <tbody id="mytbody2">
+                    <tr>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <button class="btn btn-default" id="add2"><i class="fa fa-plus"></i> 添加新参数</button>
+            <script>window.jQuery || document.write('<script src="/static/201801271505/js/jquery-1.11.0.min.js"><\/script>')</script>
+            <script type="text/javascript" src="/static/201801271505/js/bootstable.js"></script>
+        </div>
+        <div class="tab-pane fade" id="Text">
+            <textarea name="" id="raw_Text" style="color: black;width: 98%;height: 300px"></textarea>
+        </div>
+        <div class="tab-pane fade" id="JavaScript">
+            <textarea name="" id="raw_JavaScript" style="color: black;width: 98%;height: 300px"></textarea>
+        </div>
+        <div class="tab-pane fade" id="Json">
+            <textarea name="" id="raw_Json" style="color: black;width: 98%;height: 300px"></textarea>
+        </div>
+        <div class="tab-pane fade" id="Html">
+            <textarea name="" id="raw_Html" style="color: black;width: 98%;height: 300px"></textarea>
+        </div>
+        <div class="tab-pane fade" id="Xml">
+            <textarea name="" id="raw_Xml" style="color: black;width: 98%;height: 300px"></textarea>
+        </div>
+    </div>
+    {#    提取返回值功能 #}
+    <br>
+    <textarea id="get_path" rows="3" style="width: 90%;background-color: rgba(245,236,222,0.29)"
+              placeholder="提取返回值-路径法:
+参数名的字符串=路径 这种方式提取,多个用换行分割,例如:
+name=/data/[3]/username
+id=/data/[2]/userid"></textarea>
+    <textarea id="get_zz" rows="3" style="width: 90%;background-color: rgba(245,236,222,0.29)"
+              placeholder="提取返回值-正则法:
+参数名的字符串=左边界字符串(.*?)右边界,多个用换行分隔,例如:
+name=username':(.*?),
+id=d':(.*?),"></textarea>
+     <textarea  id="assert_path"  rows="3" style="width: 90%;background-color: rgba(245,236,222,0.29)" placeholder="断言返回值-路径法：
+路径=预期值,字符串必须写引号,等号右侧会被求值。多个用换行分隔，例如：
+/data/[3]/username='xxx'
+/data/[2]/userid=0123
+/data=[1,2,3]"></textarea>
+    <textarea  id="assert_zz"  rows="3" style="width: 90%;background-color: rgba(245,236,222,0.29)" placeholder="断言返回值-正则法：
+左边界字符串(.*?)右边界 = 预期值，预期值全部会被按照字符串处理，多个用换行分隔，例如：
+username':(.*?),='xxx'
+uid':(.*?),=12345"></textarea>
+    <textarea  id="assert_qz"  rows="3" style="width: 90%;background-color: rgba(245,236,222,0.29)" placeholder="断言返回值-全文检索：
+进行全文检索，存在即通过，全部按照字符串检索，不要加引号，多个用换行分隔，例如：
+123495
+请求成功
+code:200"></textarea>
+    <textarea  id="mock_res" rows="3" style="width: 90%;background-color: rgba(245,236,222,0.29)"
+               placeholder="若想mock(写死)返回值，请在此直接写好保存。
+为空则不启用mock功能。"></textarea>
+    <br><br>
+</div>
+
+{# 请求头相关js函数 #}
+<script>
+    function ts_show_project_header() {
+        document.getElementById('ts_project_header_li').style.display = 'block';
+    }
+</script>
+{# 大用例执行函数 #}
+<script>
+    function run_case(case_id) {
+        document.getElementById('run_btn_' + case_id).innerText = '正在运行...';
+        $.get('/run_case/', {
+            "case_id": case_id,
+        }, function (ret) {
+            document.getElementById('run_btn_' + case_id).innerText = '运行';
+        })
+    }
+</script>
+{#左侧js#}
+<script>
+    function add_new_step() {
+        var Case_id = document.getElementById('case_id').innerText;
+        $.get('/add_new_step/', {
+            'Case_id': Case_id,
+        }, function (ret) {
+            refresh_left_div(Case_id);
+        })
+    }
+
+    //关闭左侧div
+    function close_left_div() {
+        $('#left_div').animate({right: '100%'}, 'fast');
+        $("#left_div").css("display", "none");
+        close_right_div();
+    }
+
+    function refresh_left_div(case_id) {
+        //刷新小用例列表专用
+        var d = document.getElementById('small_list');
+        d.innerHTML = ''; //清空旧数据
+        $.get('/get_small/', {
+            'case_id': case_id,
+        }, function (ret) {
+            //开始解析ret，并展示
+            res = eval(ret);
+            all_steps = res.all_steps;
+            for (var i = 0; i < all_steps.length; i++) {
+                //生成小用例步骤的button代码
+                var bu = document.createElement('button');
+                bu.style = 'margin-top: 5px;width: 80%;background-color: #f5f3f3;';
+                bu.className = 'btn btn-defaul';
+                bu.innerText = all_steps[i].index + '-' + all_steps[i].name;
+                bu.id = 'step_btn_' + all_steps[i].id;
+                bu.onclick = function () {
+                    show_step(this.id.split('_')[2], this.innerText);
+                }
+                //小步骤的删除按钮
+                var del = document.createElement('button');
+                del.className = 'btn btn-default';
+                del.style.fontSize = 'xx-small';
+                del.innerText = 'delete';
+                del.style.height = '28px';
+                del.style.cssFloat = 'right';
+                del.style.marginTop = '8px';
+                del.idd = all_steps[i].id;
+                del.onclick = function () {
+                    $.get('/delete_step/' + this.idd + '/', {}, function (ret) {
+                        refresh_left_div(document.getElementById('case_id').innerText)
+                    })
+                };
+                d.appendChild(bu);
+                d.appendChild(del);
+            }
+        })
+    }
+
+    function show_small(case_id, case_name) {
+        if (document.getElementById('left_div').style.display == 'none') {
+            $("#left_div").css("display", "block");
+            $("#left_div").animate({right: '65%'}, 'fast');
+        } else {
+            $("#left_div").css("display", "none");
+            $("#left_div").animate({right: '100%'}, 'fast');
+            $("#left_div").css("display", "block");
+            $("#left_div").animate({right: '65%'}, 'fast');
+        }
+        document.getElementById('case_id').innerText = case_id;
+        document.getElementById('case_name').innerText = case_name;
+        refresh_left_div(case_id);
+    }
+</script>
+{#右侧js#}
+<script>
+    $(document).ready(function () {
+        $("#apis").change(function () {
+            //这里写只要触发后要执行的代码
+            document.getElementById('step_method').value = 'none';
+            document.getElementById('step_url').value = '';
+            document.getElementById('step_host').value = '';
+            document.getElementById('step_header').value = '{}';
+            document.getElementById('mock_res').value = '';
+            var project_headers = document.getElementById('ts_project_header_li').children;
+            for(var i=0;i<project_headers.length;i++){
+                project_headers[i].children[0].checked = false;
+            }
+            // 开始初始化请求体编码格式部分：
+            document.getElementById('mytbody').innerHTML = '<tr>\n' +
+                '                                                <td></td>\n' +
+                '                                                <td></td>\n' +
+                '                                              <td name="buttons"><div class="btn-group pull-right"><button id="bEdit" type="button" class="btn btn-sm btn-default" onclick="rowEdit(this);"><span class="glyphicon glyphicon-pencil"> </span></button><button id="bElim" type="button" class="btn btn-sm btn-default" onclick="rowElim(this);"><span class="glyphicon glyphicon-trash"> </span></button><button id="bAcep" type="button" class="btn btn-sm btn-default" style="display:none;" onclick="rowAcep(this);"><span class="glyphicon glyphicon-ok"> </span></button><button id="bCanc" type="button" class="btn btn-sm btn-default" style="display:none;" onclick="rowCancel(this);"><span class="glyphicon glyphicon-remove"> </span></button></div></td></tr>';
+
+            document.getElementById('mytbody2').innerHTML = '<tr>\n' +
+                '                                                <td></td>\n' +
+                '                                                <td></td>\n' +
+                '                                              <td name="buttons"><div class="btn-group pull-right"><button id="bEdit" type="button" class="btn btn-sm btn-default" onclick="rowEdit(this);"><span class="glyphicon glyphicon-pencil"> </span></button><button id="bElim" type="button" class="btn btn-sm btn-default" onclick="rowElim(this);"><span class="glyphicon glyphicon-trash"> </span></button><button id="bAcep" type="button" class="btn btn-sm btn-default" style="display:none;" onclick="rowAcep(this);"><span class="glyphicon glyphicon-ok"> </span></button><button id="bCanc" type="button" class="btn btn-sm btn-default" style="display:none;" onclick="rowCancel(this);"><span class="glyphicon glyphicon-remove"> </span></button></div></td></tr>';
+
+
+            document.getElementById('raw_Text').value = '';
+            document.getElementById('raw_JavaScript').value = '';
+            document.getElementById('raw_Json').value = '';
+            document.getElementById('raw_Html').value = '';
+            document.getElementById('raw_Xml').value = '';
+            document.getElementById('get_path').value = '';
+            document.getElementById('get_zz').value = '';
+            document.getElementById('assert_zz').value = '';
+            document.getElementById('assert_qz').value = '';
+            document.getElementById('assert_path').value = '';
+
+            if ($("#apis").val() != 'none') { // 判断不是第一个请选择，那就去获取接口信息
+                $.get("/step_get_api/", {
+                    "api_id": $("#apis").val()
+                }, function (ret) {
+                    //拿到数据开始填充
+                    console.log(ret)
+                    var ret = eval(ret);
+                    console.log(ret);
+                    document.getElementById('step_method').value = ret.api_method;
+                    document.getElementById('step_url').value = ret.api_url;
+                    document.getElementById('step_host').value = ret.api_host;
+                    document.getElementById('step_header').value = ret.api_header;
+                    // 公共请求头
+                    var project_headers = ret.public_header.split(',');
+                    for(var i=0;i<project_headers.length;i++){
+                        try{
+                            document.getElementById('checkbox_'+project_headers[i]).checked = 'checked';
+                        }catch (e) {
+                            
+                        }
+                    }
+                    // 请求体编码格式
+                    var body_method = '#' + ret.body_method;
+                    $("li a[href=" + body_method + "]").click();
+                    // 请求体显示
+                    if (ret.body_method == 'Text') {
+                        document.getElementById('raw_Text').value = ret.api_body;
+                    }
+                    if (ret.body_method == 'JavaScript') {
+                        document.getElementById('raw_JavaScript').value = ret.api_body;
+                    }
+                    if (ret.body_method == 'Json') {
+                        document.getElementById('raw_Json').value = ret.api_body;
+                    }
+                    if (ret.body_method == 'Html') {
+                        document.getElementById('raw_Html').value = ret.api_body;
+                    }
+                    if (ret.body_method == 'Xml') {
+                        document.getElementById('raw_Xml').value = ret.api_body;
+                    }
+                    if (ret.body_method == 'form-data') {
+                        var tbody = document.getElementById('mytbody'); // 定位表格中的tbody部分
+                        body = eval(ret.api_body); //把这个像列表的字符串请求体变成真正的列表
+                        for (var i = 0; i < body.length; i++) { // 遍历这个请求体列表
+                            key = body[i][0]; //拿出每一个键值对的key
+                            value = body[i][1];//拿出每一个键值对的value
+                            var childs_tr = tbody.children;//获取到这个表格下面所有的tr组成的大列表
+                            // 每个tr下的children得到的是 td列表，只有俩个。
+                            childs_tr[i].children[0].innerText = key; //第一个td放key
+                            childs_tr[i].children[1].innerText = value;//第二个td放value
+                            //判断是否是最后一次遍历，来决定是否点击新增参数按钮
+                            if (i < body.length - 1) {
+                                document.getElementById('add').click()
+                            }
+                        }
+                    }
+                    if (ret.body_method == 'x-www-form-urlencoded') {
+                        var tbody = document.getElementById('mytbody2'); // 定位表格中的tbody部分
+                        body = eval(ret.api_body); //把这个像列表的字符串请求体变成真正的列表
+                        for (var i = 0; i < body.length; i++) { // 遍历这个请求体列表
+                            key = body[i][0]; //拿出每一个键值对的key
+                            value = body[i][1];//拿出每一个键值对的value
+                            var childs_tr = tbody.children;//获取到这个表格下面所有的tr组成的大列表
+                            // 每个tr下的children得到的是 td列表，只有俩个。
+                            childs_tr[i].children[0].innerText = key; //第一个td放key
+                            childs_tr[i].children[1].innerText = value;//第二个td放value
+                            //判断是否是最后一次遍历，来决定是否点击新增参数按钮
+                            if (i < body.length - 1) {
+                                document.getElementById('add2').click()
+                            }
+                        }
+                    }
+                })
+            }
+        });
+    });
+</script>
+<script>
+    function show_step(step_id, step_name) {
+        clear_step();
+        if (document.getElementById('right_div').style.display == 'none') {
+            $("#right_div").css("display", "block");
+            $("#right_div").animate({left: '38%'}, 'fast');
+        } else {
+            $("#right_div").css("display", "none");
+            $("#right_div").animate({left: '100%'}, 'fast');
+            $("#right_div").css("display", "block");
+            $("#right_div").animate({left: '38%'}, 'fast');
+        }
+        document.getElementById('step_id').innerText = step_id;
+        document.getElementById('step_old_name').innerText = step_name;
+
+        //加载数据
+        $.get("/get_step/", {
+            "step_id": step_id
+        }, function (ret) {
+            var ret = eval(ret);
+            console.log(ret);
+            //公共请求头
+            if(ret.public_header != null){
+                var project_headers = ret.public_header.split(',');
+                for(var i=0;i<project_headers.length;i++){
+                    try{
+                        document.getElementById('checkbox_'+project_headers[i]).checked = 'checked';
+                    }catch (e) {
+
+                    }
+                }
+            }
+
+            document.getElementById('step_index').value = ret.index;
+            document.getElementById('step_name').value = ret.name;
+            document.getElementById('step_method').value = ret.api_method;
+            document.getElementById('step_url').value = ret.api_url;
+            document.getElementById('step_host').value = ret.api_host;
+            document.getElementById('step_header').value = ret.api_header;
+            document.getElementById('mock_res').value = ret.mock_res;
+            document.getElementById('get_path').value = ret.get_path;
+            document.getElementById('get_zz').value = ret.get_zz;
+            document.getElementById('assert_zz').value = ret.assert_zz;
+            document.getElementById('assert_qz').value = ret.assert_qz;
+            document.getElementById('assert_path').value = ret.assert_path;
+
+            // 请求体编码格式
+            var body_method = '#' + ret.api_body_method;
+            $("li a[href=" + body_method + "]").click();
+            // 请求体显示
+            if (ret.api_body_method == 'Text') {
+                document.getElementById('raw_Text').value = ret.api_body;
+            }
+            if (ret.api_body_method == 'JavaScript') {
+                document.getElementById('raw_JavaScript').value = ret.api_body;
+            }
+            if (ret.api_body_method == 'Json') {
+                document.getElementById('raw_Json').value = ret.api_body;
+            }
+            if (ret.api_body_method == 'Html') {
+                document.getElementById('raw_Html').value = ret.api_body;
+            }
+            if (ret.api_body_method == 'Xml') {
+                document.getElementById('raw_Xml').value = ret.api_body;
+            }
+            if (ret.api_body_method == 'form-data') {
+                var tbody = document.getElementById('mytbody'); // 定位表格中的tbody部分
+                body = eval(ret.api_body); //把这个像列表的字符串请求体变成真正的列表
+                for (var i = 0; i < body.length; i++) { // 遍历这个请求体列表
+                    key = body[i][0]; //拿出每一个键值对的key
+                    value = body[i][1];//拿出每一个键值对的value
+                    var childs_tr = tbody.children;//获取到这个表格下面所有的tr组成的大列表
+                    // 每个tr下的children得到的是 td列表，只有俩个。
+                    childs_tr[i].children[0].innerText = key; //第一个td放key
+                    childs_tr[i].children[1].innerText = value;//第二个td放value
+                    //判断是否是最后一次遍历，来决定是否点击新增参数按钮
+                    if (i < body.length - 1) {
+                        document.getElementById('add').click()
+                    }
+                }
+            }
+            if (ret.body_method == 'x-www-form-urlencoded') {
+                var tbody = document.getElementById('mytbody2'); // 定位表格中的tbody部分
+                body = eval(ret.api_body); //把这个像列表的字符串请求体变成真正的列表
+                for (var i = 0; i < body.length; i++) { // 遍历这个请求体列表
+                    key = body[i][0]; //拿出每一个键值对的key
+                    value = body[i][1];//拿出每一个键值对的value
+                    var childs_tr = tbody.children;//获取到这个表格下面所有的tr组成的大列表
+                    // 每个tr下的children得到的是 td列表，只有俩个。
+                    childs_tr[i].children[0].innerText = key; //第一个td放key
+                    childs_tr[i].children[1].innerText = value;//第二个td放value
+                    //判断是否是最后一次遍历，来决定是否点击新增参数按钮
+                    if (i < body.length - 1) {
+                        document.getElementById('add2').click()
+                    }
+                }
+            }
+
+        })
+    }
+
+    //关闭右侧div
+    function close_right_div(which) {
+        if (which == 'save') {
+            //保存脚本代码
+            //获取接口设置数据
+            var name = document.getElementById('step_name').value;
+            var step_method = document.getElementById('step_method').value;
+            var step_url = document.getElementById('step_url').value;
+            var step_host = document.getElementById('step_host').value;
+            var step_header = document.getElementById('step_header').value;
+            var index = document.getElementById('step_index').value;
+            var mock_res = document.getElementById('mock_res').value;
+            //公共请求头
+            var project_headers = document.getElementById('ts_project_header_li').children;
+            var ts_project_headers = [];
+            for(var i=0;i<project_headers.length;i++){
+                if(project_headers[i].children[0].checked == true){
+                    ts_project_headers.push(project_headers[i].children[0].value);
+                }
+            }
+            // 判断顶部的数据是否填充完
+            if (name == '') {
+                alert('请输入接口名字！');
+                return
+            }
+            if (step_method == 'null') {
+                alert('请选择请求方式！');
+                return
+            }
+            if (step_url == '') {
+                alert('请输入url！');
+                return
+            }
+            if (step_host == '') {
+                alert('请输入host！');
+                return
+            }
+
+            //判断关键数据是否符合规则
+            if (step_host.slice(0, 7) != 'http://' && step_host.slice(0, 8) != 'https://') {
+                alert('host必须以http://或https://开头！');
+                return
+            }
+            if (step_header != '') {
+                try {
+                    JSON.parse(step_header)
+                } catch (e) {
+                    alert('header请求头不符合json规范！');
+                    return
+                }
+            }
+            var step_body_method = $('ul#myTab li[class="active"]')[0].innerText;
+            if (step_body_method == 'none') {
+                var step_api_body = ''
+            }
+            if (step_body_method == 'form-data') {
+                var step_api_body = []; //新建这个空列表用来存放后续的数据
+                var tbody_ = $("table#mytable tbody")[0]; //获取该表格的内容部分
+                var trlist = tbody_.children; //获取下面所有tr，每个tr就是一个键值对实际上
+                for (var i = 0; i < trlist.length; i++) {
+                    var tdarr = trlist[i].children; // 获取tr下的俩个td
+                    var key = tdarr[0].innerText; // 获取key
+                    var value = tdarr[1].innerText; // 获取value
+                    step_api_body.push([key, value]);// 作为一个数组，存放到这个大数组里。
+                }
+                step_api_body = JSON.stringify(step_api_body);
+            }
+            if (step_body_method == 'x-www-form-urlencoded') {
+                var step_api_body = []; //新建这个空列表用来存放后续的数据
+                var tbody_ = $("table#mytable2 tbody")[0]; //获取该表格的内容部分
+                var trlist = tbody_.children; //获取下面所有tr，每个tr就是一个键值对实际上
+                for (var i = 0; i < trlist.length; i++) {
+                    var tdarr = trlist[i].children; // 获取tr下的俩个td
+                    var key = tdarr[0].innerText; // 获取key
+                    var value = tdarr[1].innerText; // 获取value
+                    step_api_body.push([key, value]);// 作为一个数组，存放到这个大数组里。
+                }
+                step_api_body = JSON.stringify(step_api_body);
+            }
+            if (step_body_method == 'Text') {
+                var step_api_body = document.getElementById('raw_Text').value;
+            }
+            if (step_body_method == 'JavaScript') {
+                var step_api_body = document.getElementById('raw_JavaScript').value;
+            }
+            if (step_body_method == 'Json') {
+                var step_api_body = document.getElementById('raw_Json').value;
+
+            }
+            if (step_body_method == 'Html') {
+                var step_api_body = document.getElementById('raw_Html').value;
+
+            }
+            if (step_body_method == 'Xml') {
+                var step_api_body = document.getElementById('raw_Xml').value;
+            }
+            var step_id = document.getElementById('step_id').innerText; //获取到了接口id
+
+            $.get('/save_step/', {
+                'step_id': step_id,
+                'name': name,
+                'index': index,
+                'step_method': step_method,
+                'step_url': step_url,
+                'step_host': step_host,
+                'step_header': step_header,
+                'mock_res': mock_res,
+                'step_body_method': step_body_method,
+                'step_api_body': step_api_body,
+                'get_path': $("#get_path").val(),
+                'get_zz': $("#get_zz").val(),
+                'assert_zz': $("#assert_zz").val(),
+                'assert_qz': $("#assert_qz").val(),
+                'assert_path': $("#assert_path").val(),
+                'ts_project_headers':ts_project_headers.toString(),
+            }, function (ret) {
+                case_id = document.getElementById('case_id').innerText;
+                refresh_left_div(case_id);
+            })
+        }
+        $("#right_div").animate({left: '100%'}, 'fast');
+        $("#right_div").css("display", "none");
+    }
+
+    //初始化步骤详情页
+    function clear_step() {
+        document.getElementById('step_id').innerText = '';
+        document.getElementById('step_old_name').innerText = '';
+        document.getElementById('step_method').value = 'none';
+        document.getElementById('apis').value = 'none';
+        document.getElementById('step_index').value = '';
+        document.getElementById('step_name').value = '';
+        document.getElementById('step_url').value = '';
+        document.getElementById('step_host').value = '';
+        document.getElementById('step_header').value = '{}';
+        document.getElementById('mock_res').value = '';
+        var project_headers = document.getElementById('ts_project_header_li').children;
+        for(var i=0;i<project_headers.length;i++){
+            project_headers[i].children[0].checked = false;
+        }
+        // 开始初始化请求体编码格式部分：
+        document.getElementById('mytbody').innerHTML = '<tr>\n' +
+            '                                                <td></td>\n' +
+            '                                                <td></td>\n' +
+            '                                              <td name="buttons"><div class="btn-group pull-right"><button id="bEdit" type="button" class="btn btn-sm btn-default" onclick="rowEdit(this);"><span class="glyphicon glyphicon-pencil"> </span></button><button id="bElim" type="button" class="btn btn-sm btn-default" onclick="rowElim(this);"><span class="glyphicon glyphicon-trash"> </span></button><button id="bAcep" type="button" class="btn btn-sm btn-default" style="display:none;" onclick="rowAcep(this);"><span class="glyphicon glyphicon-ok"> </span></button><button id="bCanc" type="button" class="btn btn-sm btn-default" style="display:none;" onclick="rowCancel(this);"><span class="glyphicon glyphicon-remove"> </span></button></div></td></tr>';
+
+        document.getElementById('mytbody2').innerHTML = '<tr>\n' +
+            '                                                <td></td>\n' +
+            '                                                <td></td>\n' +
+            '                                              <td name="buttons"><div class="btn-group pull-right"><button id="bEdit" type="button" class="btn btn-sm btn-default" onclick="rowEdit(this);"><span class="glyphicon glyphicon-pencil"> </span></button><button id="bElim" type="button" class="btn btn-sm btn-default" onclick="rowElim(this);"><span class="glyphicon glyphicon-trash"> </span></button><button id="bAcep" type="button" class="btn btn-sm btn-default" style="display:none;" onclick="rowAcep(this);"><span class="glyphicon glyphicon-ok"> </span></button><button id="bCanc" type="button" class="btn btn-sm btn-default" style="display:none;" onclick="rowCancel(this);"><span class="glyphicon glyphicon-remove"> </span></button></div></td></tr>';
+
+
+        document.getElementById('raw_Text').value = '';
+        document.getElementById('raw_JavaScript').value = '';
+        document.getElementById('raw_Json').value = '';
+        document.getElementById('raw_Html').value = '';
+        document.getElementById('raw_Xml').value = '';
+        document.getElementById('get_path').value = '';
+        document.getElementById('get_zz').value = '';
+        document.getElementById('assert_zz').value = '';
+        document.getElementById('assert_qz').value = '';
+        document.getElementById('assert_path').value = '';
+
+    }
+</script>
+
+<script>
+    // 运行第三方表格插件的函数：
+    $('#mytable').SetEditable({
+        $addButton: $('#add'),
+    });
+    $('#mytable2').SetEditable({
+        $addButton: $('#add2'),
+    });
+</script>
+
+
+</body>
+</html>
