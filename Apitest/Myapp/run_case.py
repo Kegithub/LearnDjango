@@ -65,6 +65,12 @@ class Test(unittest.TestCase):
             # print('【body】：', api_body)
 
             # 实际发送请求
+
+            # 出来域名host
+            if api_host[0:4] == '全局域名':
+                project_host_id = api_host.split('-')[1]
+                ts_host = DB_project_host.objects.filter(id=project_host_id)[0].host
+
             try:
                 header = json.loads(api_header)  # 处理header
             except:

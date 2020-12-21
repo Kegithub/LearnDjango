@@ -108,7 +108,8 @@ def child_json(eid, oid='', ooid=''):
         apis = DB_apis.objects.filter(project_id=oid)
         project_header = DB_project_header.objects.filter(project_id=oid)
         hosts = DB_host.objects.all()
-        res = {'cases': cases, 'project': project, "apis": apis, 'project_header': project_header, "hosts": hosts}
+        project_host = DB_project_host.objects.filter(project_id=oid)
+        res = {'cases': cases, 'project': project, "apis": apis, 'project_header': project_header, "hosts": hosts, "project_host": project_host}
     if eid == 'P_project_set.html':
         project = DB_project.objects.filter(id=oid)[0]
         res = {"project": project}
@@ -247,6 +248,11 @@ def Api_send(request):
     ts_body_method = request.GET['ts_body_method']
     api_name = request.GET['api_name']
     ts_project_headers = request.GET['ts_project_headers'].split(',')
+
+    # 出来域名host
+    if ts_host[0:4] == '全局域名':
+        project_host_id = ts_host.split('-')[1]
+        ts_host = DB_project_host.objects.filter(id=project_host_id)[0].host
 
     if ts_body_method == '返回体':
         api = DB_apis.objects.filter(id=api_id)[0]

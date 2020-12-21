@@ -108,6 +108,10 @@ position: absolute;left: 100%;top: 0px;overflow-y: visible;text-align: center">
     </ul>
     <div class="input-group" style="margin-top: 45px;margin-left: 5%;width: 90%">
         <datalist id="datalist_1">
+                {% for i in project_host %}
+                    <option value="全局域名-{{ i.id }}" id="project_host_{{ i.id }}">{{ i.name }}: {{ i.host }}</option>
+                {% endfor %}
+
                 {% for i in hosts %}
                     <option value="{{ i.host }}" id="host_{{ i.id }}">{{ i.host }}</option>
                 {% endfor %}
@@ -590,7 +594,7 @@ code:200"></textarea>
             }
 
             //判断关键数据是否符合规则
-            if (step_host.slice(0, 7) != 'http://' && step_host.slice(0, 8) != 'https://') {
+            if (step_host.slice(0, 7) != 'http://' && step_host.slice(0, 8) != 'https://' && step_host.slice(0,4) != '全局域名') {
                 alert('host必须以http://或https://开头！');
                 return
             }

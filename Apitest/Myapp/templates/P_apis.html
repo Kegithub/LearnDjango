@@ -105,6 +105,10 @@ color: white;padding-left: 10px">
     <ul class="nav navbar-nav" style="width: 98%;">
         <li style="width: -webkit-calc(100% - 63px)">
             <datalist id="datalist_1">
+                {% for i in project_host %}
+                    <option value="全局域名-{{ i.id }}" id="project_host_{{ i.id }}">{{ i.name }}: {{ i.host }}</option>
+                {% endfor %}
+
                 {% for i in hosts %}
                     <option value="{{ i.host }}" id="host_{{ i.id }}">{{ i.host }}</option>
                 {% endfor %}
@@ -467,7 +471,7 @@ padding-left: 10px;background-color: white">
         if(ts_url == ''){alert('请输入url！');return}
         if(ts_host == ''){alert('请输入host！');return}
         //判断关键数据是否符合规则
-        if(ts_host.slice(0,7) != 'http://' && ts_host.slice(0,8) != 'https://'){
+        if(ts_host.slice(0,7) != 'http://' && ts_host.slice(0,8) != 'https://' && ts_host.slice(0,4) != '全局域名'){
             alert('host必须以http或https开头');return;
         }
         if(ts_header != ''){
@@ -558,7 +562,7 @@ padding-left: 10px;background-color: white">
         if(ts_url == ''){alert('请输入url！');return}
         if(ts_host == ''){alert('请输入host！');return}
         //判断关键数据是否符合规则
-        if(ts_host.slice(0,7) != 'http://' && ts_host.slice(0,8) != 'https://'){
+        if(ts_host.slice(0,7) != 'http://' && ts_host.slice(0,8) != 'https://' && ts_host.slice(0,4) != '全局域名'){
             alert('host必须以http或https开头');return;}
         if(ts_header != ''){
             try {
