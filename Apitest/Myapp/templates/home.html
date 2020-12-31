@@ -82,6 +82,7 @@
                     <li><a href="#Xml" tabindex="-1" data-toggle="tab">Xml</a></li>
                 </ul>
             </li>
+            <li ><a href="#GraphQL" data-toggle="tab" >GraphQL</a></li>
             <li ><a href="#response" data-toggle="tab" >返回体</a></li>
         </ul>
         <div id="myTabContent" class="tab-content">
@@ -145,6 +146,22 @@
             </div>
             <div class="tab-pane fade" id="Xml">
                 <textarea name="" id="raw_Xml" style="color: black;width: 98%;height: 300px"></textarea>
+            </div>
+            <div class="tab-pane fade" id="GraphQL">
+                 <table style="width: 98%">
+                   <thead>
+                        <tr>
+                            <td style="width: 55%"><span >QUERY</span></td>
+                            <td style="width: 40%"><span >GRAPHQL VARIABLES</span></td>
+                          </tr>
+                   </thead>
+                    <tbody>
+                      <tr>
+                        <td><textarea id="body_plan_G_Q"  rows="14" style="padding-left: 3px;border-radius: 5px;width: 99%"></textarea></td>
+                        <td><textarea id="body_plan_G_G"  rows="14" style="padding-left: 3px;border-radius: 5px;width: 100%"></textarea></td>
+                      </tr>
+                    </tbody>
+                </table>
             </div>
             <div class="tab-pane fade" id="response">
                 <textarea name="" id="ts_response_body" disabled="disabled" style="background-color: #e4f3f5;color: black;width: 98%;height: 300px"></textarea>
@@ -223,6 +240,11 @@
             }
             if(ts_body_method == 'Xml'){
                 var ts_api_body = document.getElementById('raw_Xml').value;
+            }
+            if(ts_body_method == 'GraphQL'){
+                body_plan_G_Q = document.getElementById('body_plan_G_Q').value;
+                body_plan_G_G = document.getElementById('body_plan_G_G').value;
+                var ts_api_body = body_plan_G_Q + '*WQRF*' + body_plan_G_G;
             }
             // 发送请求给后台
              $.get('/Api_send_home/',{
@@ -324,6 +346,12 @@
                         document.getElementById('add2').click()
                     }
                 }
+            }
+            if("{{ log.body_method }}" == "GraphQL"){
+                body_plan_G_Q = "{{ log.api_body }}".split('*WQRF*')[0];
+                body_plan_G_G = "{{ log.api_body }}".split('*WQRF*')[1];
+                document.getElementById('body_plan_G_Q').value = body_plan_G_Q;
+                document.getElementById('body_plan_G_G').value = body_plan_G_G;
             }
         }
     </script>

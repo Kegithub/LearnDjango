@@ -66,4 +66,6 @@ urlpatterns = [
     path('save_project_header/', save_project_header),  # 保存项目公共请求头
     path('save_case_name/', save_case_name),  # 保存用例名字
     path('save_project_host/', save_project_host),  # 保存项目全局域名
+    path('project_get_login/', project_get_login),  # 获取项目登录态接口
+    path('project_login_save/', project_login_save),  # 保存项目登录态接口
 ]

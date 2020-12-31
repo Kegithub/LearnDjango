@@ -271,9 +271,9 @@ def Api_send(request):
         return HttpResponse('请求头不符合json格式')
 
     for i in ts_project_headers:
-        project_header = DB_project_header.objects.filter(id=i)[0]
-        header[project_header.key] = project_header.value
-    print(header)
+        if i != '':
+            project_header = DB_project_header.objects.filter(id=i)[0]
+            header[project_header.key] = project_header.value
 
     # 拼接网站url
     if ts_host[-1] == '/' and ts_url[0] == '/':
@@ -296,6 +296,16 @@ def Api_send(request):
             payload = {}
             for i in eval(ts_api_body):
                 payload[i[0]] = i[1]
+            response = requests.request(ts_method.upper(), url, headers=header, data=payload)
+        elif ts_body_method == 'GraphQL':
+            header['Content-Type'] = 'application/json'
+            query = ts_api_body.split('*WQRF*')[0]
+            graphql = ts_api_body.split('*WQRF*')[1]
+            try:
+                eval(graphql)
+            except:
+                graphql = '{}'
+            payload = '{"query":"%s","variables":%s}' % (query, graphql)
             response = requests.request(ts_method.upper(), url, headers=header, data=payload)
         else:
             if ts_body_method == 'Text':
@@ -398,7 +408,6 @@ def error_request(request):
 # 首页发送请求
 def Api_send_home(request):
     # 提取所有数据
-    print('qwe')
     ts_method = request.GET['ts_method']
     ts_url = request.GET['ts_url']
     ts_host = request.GET['ts_host']
@@ -427,23 +436,34 @@ def Api_send_home(request):
         url = ts_host + ts_url
     try:
         if ts_body_method == 'none':
-            response = requests.request(ts_method.upper(), url, headers=header, data={} )
+            response = requests.request(ts_method.upper(), url, headers=header, data={})
 
         elif ts_body_method == 'form-data':
             files = []
             payload = {}
             for i in eval(ts_api_body):
                 payload[i[0]] = i[1]
-            response = requests.request(ts_method.upper(), url, headers=header, data=payload, files=files )
+            response = requests.request(ts_method.upper(), url, headers=header, data=payload, files=files)
 
         elif ts_body_method == 'x-www-form-urlencoded':
             header['Content-Type'] = 'application/x-www-form-urlencoded'
             payload = {}
             for i in eval(ts_api_body):
                 payload[i[0]] = i[1]
-            response = requests.request(ts_method.upper(), url, headers=header, data=payload )
+            response = requests.request(ts_method.upper(), url, headers=header, data=payload)
 
-        else: #这时肯定是raw的五个子选项：
+        elif ts_body_method == 'GraphQL':
+            header['Content-Type'] = 'application/json'
+            query = ts_api_body.split('*WQRF*')[0]
+            graphql = ts_api_body.split('*WQRF*')[1]
+            try:
+                eval(graphql)
+            except:
+                graphql = '{}'
+            payload = '{"query":"%s","variables":%s}' % (query, graphql)
+            response = requests.request(ts_method.upper(), url, headers=header, data=payload)
+
+        else:  # 这时肯定是raw的五个子选项：
             if ts_body_method == 'Text':
                 header['Content-Type'] = 'text/plain'
 
@@ -673,6 +693,39 @@ def save_project_host(request):
     return HttpResponse('')
 
 
+# 获取项目登录态接口
+def project_get_login(request):
+    project_id = request.GET['project_id']
+    try:
+        login = DB_login.objects.filter(project_id=project_id).values()[0]
+    except:
+        login = {}
+    return HttpResponse(json.dumps(login), content_type='application/json')
+
+
+# 保存项目登录态接口
+def project_login_save(request):
+    # 提取所有数据
+    project_id = request.GET['project_id']
+    login_method = request.GET['login_method']
+    login_url = request.GET['login_url']
+    login_host = request.GET['login_host']
+    login_header = request.GET['login_header']
+    login_body_method = request.GET['login_body_method']
+    login_api_body = request.GET['login_api_body']
+    login_response_set = request.GET['login_response_set']
+    # 保存数据
+    DB_login.objects.filter(project_id=project_id).update(
+        api_method=login_method,
+        api_url=login_url,
+        api_header=login_header,
+        api_host=login_host,
+        body_method=login_body_method,
+        api_body=login_api_body,
+        set=login_response_set
+    )
+    # 返回
+    return HttpResponse('success')
 
 
 

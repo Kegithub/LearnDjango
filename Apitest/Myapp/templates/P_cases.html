@@ -147,6 +147,7 @@ position: absolute;left: 100%;top: 0px;overflow-y: visible;text-align: center">
                 <li><a href="#Xml" tabindex="-1" data-toggle="tab">Xml</a></li>
             </ul>
         </li>
+        <li ><a href="#GraphQL" data-toggle="tab" >GraphQL</a></li>
     </ul>
     <div id="myTabContent" class="tab-content">
         <div class="tab-pane fade in active" id="none" style="text-align: center;color: grey">
@@ -209,6 +210,22 @@ position: absolute;left: 100%;top: 0px;overflow-y: visible;text-align: center">
         </div>
         <div class="tab-pane fade" id="Xml">
             <textarea name="" id="raw_Xml" style="color: black;width: 98%;height: 300px"></textarea>
+        </div>
+        <div class="tab-pane fade" id="GraphQL">
+             <table style="width: 98%">
+               <thead>
+                    <tr>
+                        <td style="width: 55%"><span >QUERY</span></td>
+                        <td style="width: 40%"><span >GRAPHQL VARIABLES</span></td>
+                      </tr>
+               </thead>
+                <tbody>
+                  <tr>
+                    <td><textarea id="body_plan_G_Q"  rows="14" style="padding-left: 3px;border-radius: 5px;width: 99%"></textarea></td>
+                    <td><textarea id="body_plan_G_G"  rows="14" style="padding-left: 3px;border-radius: 5px;width: 100%"></textarea></td>
+                  </tr>
+                </tbody>
+            </table>
         </div>
     </div>
     {#    提取返回值功能 #}
@@ -371,6 +388,8 @@ code:200"></textarea>
             document.getElementById('raw_Json').value = '';
             document.getElementById('raw_Html').value = '';
             document.getElementById('raw_Xml').value = '';
+            document.getElementById('body_plan_G_Q').value = '';
+            document.getElementById('body_plan_G_G').value = '';
             document.getElementById('get_path').value = '';
             document.getElementById('get_zz').value = '';
             document.getElementById('assert_zz').value = '';
@@ -535,7 +554,7 @@ code:200"></textarea>
                     }
                 }
             }
-            if (ret.body_method == 'x-www-form-urlencoded') {
+            if (ret.aoi_body_method == 'x-www-form-urlencoded') {
                 var tbody = document.getElementById('mytbody2'); // 定位表格中的tbody部分
                 body = eval(ret.api_body); //把这个像列表的字符串请求体变成真正的列表
                 for (var i = 0; i < body.length; i++) { // 遍历这个请求体列表
@@ -551,7 +570,12 @@ code:200"></textarea>
                     }
                 }
             }
-
+            if(ret.api_body_method == "GraphQL"){
+                body_plan_G_Q = ret.api_body.split('*WQRF*')[0];
+                body_plan_G_G = ret.api_body.split('*WQRF*')[1];
+                document.getElementById('body_plan_G_Q').value = body_plan_G_Q;
+                document.getElementById('body_plan_G_G').value = body_plan_G_G;
+            }
         })
     }
 
@@ -651,6 +675,11 @@ code:200"></textarea>
             if (step_body_method == 'Xml') {
                 var step_api_body = document.getElementById('raw_Xml').value;
             }
+            if(step_body_method == "GraphQL"){
+                body_plan_G_Q = document.getElementById('body_plan_G_Q').value;
+                body_plan_G_G = document.getElementById('body_plan_G_G').value;
+                var step_api_body = body_plan_G_Q + '*WQRF*' + body_plan_G_G;
+            }
             var step_id = document.getElementById('step_id').innerText; //获取到了接口id
 
             $.get('/save_step/', {
@@ -712,6 +741,8 @@ code:200"></textarea>
         document.getElementById('raw_Json').value = '';
         document.getElementById('raw_Html').value = '';
         document.getElementById('raw_Xml').value = '';
+        document.getElementById('body_plan_G_Q').value = '';
+        document.getElementById('body_plan_G_G').value = '';
         document.getElementById('get_path').value = '';
         document.getElementById('get_zz').value = '';
         document.getElementById('assert_zz').value = '';
