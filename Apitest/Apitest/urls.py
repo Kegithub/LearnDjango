@@ -17,6 +17,7 @@ from django.conf.urls import url
 from django.contrib import admin
 from django.urls import path, re_path
 from Myapp.views import *
+from Myapp.views_tools import *
 
 
 urlpatterns = [
@@ -68,4 +69,11 @@ urlpatterns = [
     path('save_project_host/', save_project_host),  # 保存项目全局域名
     path('project_get_login/', project_get_login),  # 获取项目登录态接口
     path('project_login_save/', project_login_save),  # 保存项目登录态接口
+    path('project_login_send/', project_login_send),  # 调试登录态接口
+
+
+    # -----小工具------ #
+    path('tools_zhengjiao/', zhengjiao),  # 进入正交工具页面
+    path('zhengjiao_play/', zhengjiao_play),  # 正交工具运行
+    path('zhengjiao_excel/', zhengjiao_excel),  # 正交工具导出
 ]
