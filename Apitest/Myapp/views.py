@@ -398,6 +398,8 @@ def error_request(request):
     host = api.api_host
     header = api.api_header
     body_method = api.body_method
+    if header == '':
+        header = '{}'
     try:
         header = json.loads(header)
     except:
@@ -445,6 +447,8 @@ def Api_send_home(request):
     ts_body_method = request.GET['ts_body_method']
     ts_api_body = request.GET['ts_api_body']
     # 发送请求获取返回值
+    if ts_header == '':
+        ts_header = '{}'
     try:
         header = json.loads(ts_header) #处理header
     except:
@@ -629,6 +633,7 @@ def save_step(request):
     assert_zz = request.GET['assert_zz']
     assert_qz = request.GET['assert_qz']
     assert_path = request.GET['assert_path']
+    step_login = request.GET['step_login']
 
     DB_step.objects.filter(id=step_id).update(name=name,
                                               index=index,
@@ -645,6 +650,7 @@ def save_step(request):
                                               assert_zz=assert_zz,
                                               assert_qz=assert_qz,
                                               assert_path=assert_path,
+                                              api_login=step_login,
                                               )
     return HttpResponse('')
 
@@ -769,6 +775,9 @@ def project_login_send(request):
     login_api_body = request.GET['login_api_body']
     login_response_set = request.GET['login_response_set']
 
+    if login_header == '':
+        login_header = '{}'
+
     # 第二步，发送请求
     try:
         header = json.loads(login_header) #处理header
@@ -866,6 +875,8 @@ def project_login_send_for_other(project_id):
     login_body_method = login_api.body_method
     login_api_body = login_api.api_body
     login_response_set = login_api.set
+    if login_header == '':
+        login_header = '{}'
     # 第二步，发送请求
     try:
         header = json.loads(login_header) #处理header

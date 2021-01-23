@@ -101,9 +101,15 @@ position: absolute;left: 100%;top: 0px;overflow-y: visible;text-align: center">
                 <option value="delete">DELETE</option>
             </select>
         </li>
-        <li style="width: -webkit-calc(100% - 105px)">
+        <li style="width: -webkit-calc(100% - 230px)">
             <input type="text" id="step_url" style="border-radius: 4px;border: 1px solid #cccccc;padding-left: 10px;width: 100%;
             height: 35px;" placeholder="url: 如/aa/ddd/" value="">
+        </li>
+        <li>
+            <select name="step_login" id="step_login" style="height: 35px" class="form-control">
+                <option value="no" id="step_login_no">不加登录态</option>
+                <option value="yes" id="step_login_yes">加登录态</option>
+            </select>
         </li>
     </ul>
     <div class="input-group" style="margin-top: 45px;margin-left: 5%;width: 90%">
@@ -519,6 +525,10 @@ code:200"></textarea>
             document.getElementById('assert_qz').value = ret.assert_qz;
             document.getElementById('assert_path').value = ret.assert_path;
 
+            if(ret.api_login != null && ret.api_login != ''){
+                document.getElementById('step_login').value = ret.api_login;
+            }
+
             // 请求体编码格式
             var body_method = '#' + ret.api_body_method;
             $("li a[href=" + body_method + "]").click();
@@ -591,6 +601,7 @@ code:200"></textarea>
             var step_header = document.getElementById('step_header').value;
             var index = document.getElementById('step_index').value;
             var mock_res = document.getElementById('mock_res').value;
+            var step_login = document.getElementById('step_login').value;
             //公共请求头
             var project_headers = document.getElementById('ts_project_header_li').children;
             var ts_project_headers = [];
@@ -699,6 +710,7 @@ code:200"></textarea>
                 'assert_qz': $("#assert_qz").val(),
                 'assert_path': $("#assert_path").val(),
                 'ts_project_headers':ts_project_headers.toString(),
+                'step_login':step_login,
             }, function (ret) {
                 case_id = document.getElementById('case_id').innerText;
                 refresh_left_div(case_id);
@@ -720,6 +732,8 @@ code:200"></textarea>
         document.getElementById('step_host').value = '';
         document.getElementById('step_header').value = '{}';
         document.getElementById('mock_res').value = '';
+        document.getElementById('step_login').value = 'no';
+
         var project_headers = document.getElementById('ts_project_header_li').children;
         for(var i=0;i<project_headers.length;i++){
             project_headers[i].children[0].checked = false;
