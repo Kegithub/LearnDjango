@@ -82,11 +82,28 @@ def child_json(eid, oid='', ooid=''):
         data = DB_home_href.objects.all()
         home_log = DB_apis_log.objects.filter(user_id=oid)[::-1]
         hosts = DB_host.objects.all()
+        from django.contrib.auth.models import User
+        user_projects = DB_project.objects.filter(user=User.objects.filter(id=oid)[0].username)
+        # 个人数据看板
+        count_project = len(user_projects)
+        count_api = sum([len(DB_apis.objects.filter(project_id=i.id)) for i in user_projects])
+        count_case = sum([len(DB_cases.objects.filter(project_id=i.id)) for i in user_projects])
+        ziyuan_all = len(DB_project.objects.all()) + len(DB_apis.objects.all()) + len(DB_cases.objects.all())
+        ziyuan_user = count_project + count_api + count_case
+        ziyuan = format(ziyuan_user/ziyuan_all *100, '.2f')
+        new_res = {
+            "count_project": count_project,
+            "count_api": count_api,
+            "count_case": count_case,
+            "count_report": '',
+            "ziyuan": ziyuan,
+        }
         if ooid == '':
-            res = {"hrefs": data, "home_log": home_log, "hosts": hosts}
+            res = {"hrefs": data, "home_log": home_log, "hosts": hosts, "user_projects": user_projects}
         else:
             log = DB_apis_log.objects.filter(id=ooid)[0]
-            res = {"hrefs": data, "home_log": home_log, "log": log, "hosts": hosts}
+            res = {"hrefs": data, "home_log": home_log, "log": log, "hosts": hosts, "user_projects": user_projects}
+        res.update(new_res)
     if eid == 'project_list.html':
         data = DB_project.objects.all()
         res = {"projects": data}
@@ -556,6 +573,29 @@ def get_api_log_home(request):
     return HttpResponse(json.dumps(ret), content_type='application/json')
 
 
+# 首页保存请求数据
+def home_save_api(request):
+    project_id = request.GET['project_id']
+    ts_method = request.GET['ts_method']
+    ts_url = request.GET['ts_url']
+    ts_host = request.GET['ts_host']
+    ts_header = request.GET['ts_header']
+    ts_body_method = request.GET['ts_body_method']
+    ts_api_body = request.GET['ts_api_body']
+
+    DB_apis.objects.create(project_id=project_id,
+                           name='首页保存接口',
+                           api_method=ts_method,
+                           api_url=ts_url,
+                           api_header=ts_header,
+                           api_host=ts_host,
+                           body_method=ts_body_method,
+                           api_body=ts_api_body,
+                           )
+
+    return HttpResponse('')
+
+
 # 增加用例
 def add_case(request, eid):
     DB_cases.objects.create(project_id=eid, name='')
@@ -1002,7 +1042,18 @@ def project_login_send_for_other(project_id):
         return {}
 
 
+# 首页搜索功能
+def search(request):
+    key = request.GET['key']
+    # 项目名搜索
+    projects = DB_project.objects.filter(name__contains=key)  # 获取name包含key的所有项目
+    plist = [{"url": "/apis/%s/"%i.id, "text": i.name, "type": "project"} for i in projects]
+    # 接口名搜索
+    apis = DB_apis.objects.filter(name__contains=key)  # 获取name包含key的所有接口
+    alist = [{"url": "/apis/%s/"%i.project_id, "text": i.name, "type": "api"} for i in apis]
 
+    res = {"results": plist + alist}
+    return HttpResponse(json.dumps(res), content_type='application/json')
 
 
 

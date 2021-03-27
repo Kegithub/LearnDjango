@@ -70,7 +70,8 @@ urlpatterns = [
     path('project_get_login/', project_get_login),  # 获取项目登录态接口
     path('project_login_save/', project_login_save),  # 保存项目登录态接口
     path('project_login_send/', project_login_send),  # 调试登录态接口
-
+    path('home_save_api/', home_save_api),  # 首页保存请求数据
+    path('search/', search),  # 首页搜索功能
 
     # -----小工具------ #
     path('tools_zhengjiao/', zhengjiao),  # 进入正交工具页面

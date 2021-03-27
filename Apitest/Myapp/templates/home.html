@@ -2,17 +2,99 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <link rel="stylesheet" href="/static/bingxingtu/css/progresscircle.css">
     <style>
+        .circlechart{
+            float: left;
+            padding: 20px;
+            width: 90px;
+        }
+        .search_input {
+            width:100%;
+            height:42px;
+            padding-left:13px;
+        }
+        .search_button {
+            height:42px;
+            /*width:42px;*/
+            cursor:pointer;
+            position:absolute;
+        }
+        .bar input {
+            border:3px solid #66defd;
+            border-radius:5px;
+            background:transparent;
+            top:0;
+            right:0;
+        }
+        .bar button {
+            background-color: #66defd;;
+            /*background: linear-gradient(to right, #be0063, #ffcbd4);*/
+            border-radius:0 5px 5px 0;
+            width:160px;
+            top:0;
+            right:0;
+            color: white;
+        }
+        .bar button:before {
+            font-size:13px;
+            color:#a7eded;
+        }
+        button {
+            border:none;
+            outline:none;
+        }
     </style>
 </head>
-<h2 style="margin-left: 400px;color: #1d7db1;">欢迎使用，接口测试平台</h2>
-<h3>&#12288;您的请求记录：</h3>
-<div id="home_log_plan" style="padding-left: 20px;overflow-y: scroll;width: 320px">
+<div class="search bar" style="position: absolute;top: 10px; left: 490px;width: -webkit-calc(100% - 980px)">
+    <div id="search_button"   >
+        <strong>
+        <input class="search_input" id="search_input" placeholder="输入搜索关键词" name="keys" type="text" value="{{keys}}">
+        </strong>
+        <button class="search_button" id="search_submit"  onclick="search()" style="width: 100px"> <strong><font size="5">搜 索</font></strong> </button>
+    </div>
+</div>
+<div id="search_result" style="display: none;z-index: 999;position: absolute;top: 80px;left: 15%;width: 70%;min-height: 200px;
+            background:linear-gradient(to bottom,#b8eafd,#e8ffdb) ;opacity:0.8;padding: 5px;
+            border-radius: 2px;box-shadow: 4px 4px 8px #bcbcbc">
+</div>
+<button id="search_close" onclick="search_close()" style="display: none;z-index: 999;position: absolute;top: 80px;
+right: 15%;background-color: black;color: white;border-radius: 2px">close</button>
+
+<div  style="height: 400px;overflow-y: scroll;margin-left: 15px;width: 300px;" class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+    您的项目如下：
+    {% for i in user_projects %}
+         <div class="panel panel-default" >
+            <div class="panel-heading" role="tab" id="heading{{ i.id }}">
+                <h4 class="panel-title">
+                    <a class="collapsed" style="text-decoration: none" role="button" data-toggle="collapse" data-parent="#accordion" href="#collapse{{ i.id }}" aria-expanded="false" aria-controls="collapse{{ i.id }}">
+                        <span style="color: #01a2cb"> {{ i.name }} </span>
+                    </a>
+                </h4>
+            </div>
+            <div id="collapse{{ i.id }}" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading{{ i.id }}">
+                <div style="padding-left: 10px;font-size: xx-small">
+                   备注：{{ i.remark }} <br>
+                   其他管理员：{{ i.other_user }} <br>
+                    <a href="/apis/{{ i.id }}/" style="background-color: #47ba04;color: white;font-size: large;border-radius: 5px">&nbsp;立即进入&nbsp;</a> &nbsp;
+                    <a href="#" onclick="save_api('{{ i.id }}')" style="background-color: #e92f6c;color: white;font-size: large;border-radius: 5px">&nbsp;保存请求&nbsp;</a> <br>
+                    <br>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+<div id="heng" style="width: 310px;height: 1px;background-color: #e0ddde;position: absolute;left:15px ;bottom: 310px">&nbsp;
+</div>
+<div id="home_log_plan" style="padding-left: 20px;overflow-y: scroll;width: 320px;position: absolute;bottom: 10px">
+    <br>
     {% for i in home_log %}
+        <div style="background-color: #eefaff;margin-bottom: 3px;border-radius: 5px;padding: 1px">
         <a href="/home_log/{{ i.id }}" style="text-decoration: none"  class="log" >
             <span style="font-size: large;color: black">{{ i.api_method }}</span> -
             {{ i.api_host }}{{ i.api_url }}
-        </a> <br>
+        </a>
+        </div>
     {% endfor %}
 </div>
 <body>
@@ -356,14 +438,158 @@
         }
     </script>
 </div>
-<div id="shu" style="width: 2px;background-color: #262c2c;position: absolute;top: 70px;left: 340px;">
-&nbsp;
+<div id="shu" style="width: 2px;background-color: #e0ddde;position: absolute;top: 70px;left: 340px;">
+&nbsp
 </div>
+<div style="background-color: #eefaff;min-height: 100px;width:-webkit-calc(100% - 340px);
+            margin-left: 342px;position: fixed;bottom: 0px;box-shadow: -4px -4px 8px #e3e3e3;padding: 10px">
+    <div style="width: 120px;height: 80px;background-color: #105f72;border-radius: 5px;color: white;padding: 3px;font-size: small">
+        当前项目数: <span>{{ count_project }}</span> <br>
+        当前接口数: <span>{{ count_api }}</span> <br>
+        当前用例数: <span>{{ count_case }}</span> <br>
+        当前报告数: <span>{{ count_report }}</span>
+    </div>
+    <div style="position: fixed;bottom: 3px;left: 470px">
+        <div class="circlechart" data-percentage="{{ ziyuan }}"></div>
+        <div class="circlechart" data-percentage="30"></div>
+        <div class="circlechart" data-percentage="80"></div>
+        <span style="position: fixed;bottom: 5px;left: 500px;font-size: xx-small;color: #105f72">资源比</span>
+        <span style="position: fixed;bottom: 5px;left: 688px;font-size: xx-small;color: #105f72">待定</span>
+        <span style="position: fixed;bottom: 5px;left: 598px;font-size: xx-small;color: #105f72">待定</span>
+    </div>
+</div>
+<script>
+    function save_api(id) {
+        // 获取接口的所有数据
+        var ts_method = document.getElementById('ts_method').value ;
+        var ts_url = document.getElementById('ts_url').value ;
+        var ts_host = document.getElementById('ts_host').value ;
+        var ts_header = document.getElementById('ts_header').value ;
+         // 判断顶部的数据是否填充完
+        if(ts_method == 'none'){alert('请选择请求方式！');return}
+        if(ts_url == ''){alert('请输入url！');return}
+        if(ts_host == ''){alert('请输入host！');return}
+         //判断关键数据是否符合规则
+        if(ts_host.slice(0,7) != 'http://' && ts_host.slice(0,8) != 'https://'){
+            alert('host必须以http://或https://开头！');return
+        }
+        if(ts_header != ''){
+            try {
+                JSON.parse(ts_header)
+            }catch (e) {
+                alert('header请求头不符合json规范！');
+                return
+            }
+        }
+        var ts_body_method = $('ul#myTab li[class="active"]')[0].innerText;
+        if(ts_body_method == 'none'){
+            var ts_api_body = ''
+        }
+        if(ts_body_method == 'form-data'){
+            var ts_api_body = []; //新建这个空列表用来存放后续的数据
+            var tbody_ = $("table#mytable tbody")[0]; //获取该表格的内容部分
+            var trlist = tbody_.children ; //获取下面所有tr，每个tr就是一个键值对实际上
+            for(var i=0;i<trlist.length;i++) {
+                var tdarr = trlist[i].children; // 获取tr下的俩个td
+                var key = tdarr[0].innerText; // 获取key
+                var value = tdarr[1].innerText; // 获取value
+                ts_api_body.push([key, value]);// 作为一个数组，存放到这个大数组里。
+            }
+            ts_api_body = JSON.stringify(ts_api_body);
+        }
+        if(ts_body_method == 'x-www-form-urlencoded'){
+            var ts_api_body = []; //新建这个空列表用来存放后续的数据
+            var tbody_ = $("table#mytable2 tbody")[0]; //获取该表格的内容部分
+            var trlist = tbody_.children ; //获取下面所有tr，每个tr就是一个键值对实际上
+            for(var i=0;i<trlist.length;i++) {
+                var tdarr = trlist[i].children; // 获取tr下的俩个td
+                var key = tdarr[0].innerText; // 获取key
+                var value = tdarr[1].innerText; // 获取value
+                ts_api_body.push([key, value]);// 作为一个数组，存放到这个大数组里。
+            }
+            ts_api_body = JSON.stringify(ts_api_body);
+        }
+        if(ts_body_method == 'Text'){
+            var ts_api_body = document.getElementById('raw_Text').value;
+        }
+        if(ts_body_method == 'JavaScript'){
+            var ts_api_body = document.getElementById('raw_JavaScript').value;
+        }
+        if(ts_body_method == 'Json'){
+            var ts_api_body = document.getElementById('raw_Json').value;
+        }
+        if(ts_body_method == 'Html'){
+            var ts_api_body = document.getElementById('raw_Html').value;
+        }
+        if(ts_body_method == 'Xml'){
+            var ts_api_body = document.getElementById('raw_Xml').value;
+        }
+
+        if(ts_body_method == 'GraphQL'){
+            body_plan_G_Q = document.getElementById('body_plan_G_Q').value;
+            body_plan_G_G = document.getElementById('body_plan_G_G').value;
+             var ts_api_body = body_plan_G_Q+ '*WQRF*' + body_plan_G_G
+        }
+         // 发送请求给后台
+         $.get('/home_save_api/',{
+             'project_id':id,
+            'ts_method':ts_method,
+            'ts_url':ts_url,
+            'ts_host':ts_host,
+            'ts_header':ts_header,
+            'ts_body_method':ts_body_method,
+            'ts_api_body':ts_api_body,
+        },function (ret) {
+            alert('保存成功！')
+        })
+    }
+</script>
 <script>
     var h = document.documentElement.clientHeight;
     document.getElementById('shu').style.height = (h-85).toString() + 'px';
-    document.getElementById('home_log_plan').style.height = (h-85).toString() + 'px';
+    document.getElementById('home_log_plan').style.maxHeight = '300px';
 </script>
+<script>
+    document.getElementById('menu_btn').click();
+</script>
+<script src="/static/bingxingtu/js/progresscircle.js"></script>
+<script>
+    $('.circlechart').circlechart();
+</script>
+<script>
+    function search() {
+        //获取输入内容
+        key = document.getElementById('search_input').value;
+        // 清空搜索结果
+        document.getElementById('search_result').innerHTML = '';
+        // 判断是否继续进行
+        if(key == '' || key == ' '){
+            return
+        }
+        // 发送请求给后台
+        $.get('/search/',{
+            'key':key
+        },function (ret) {
+            // 把结果显示
+            document.getElementById('search_close').style.display = 'block';
+            var d = document.getElementById('search_result');
+            d.style.display = 'block';
+            results = ret.results; //ret.results是返回结果为列表
+            for(var i=0;i<results.length;i++){
+                var a =document.createElement('a');
+                a.href = results[i].url;
+                a.target = '__blank';
+                a.innerText =  '【'+results[i].type+'】：'+results[i].text;
 
+                d.appendChild(a);
+                d.appendChild(document.createElement('br'))
+            }
+        })
+    }
+    function search_close() {
+        document.getElementById('search_result').style.display = 'none';
+        document.getElementById('search_close').style.display = 'none';
+    }
+</script>
 </body>
 </html>
