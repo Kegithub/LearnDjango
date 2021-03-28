@@ -339,10 +339,10 @@ def Api_send(request):
             files = []
             payload = {}
             for i in eval(ts_api_body):
-                payload[i[0]] = i[1]
+                payload += ((i[0], i[1]),)
             if type(login_res) == dict:
                 for i in login_res.keys():
-                    payload[i] = login_res[i]
+                    payload += ((i, login_res[i]),)
                 response = requests.request(ts_method.upper(), url, headers=header, data=payload, files=files)
             else:
                 response = login_res.request(ts_method.upper(), url, headers=header, data=payload, files=files)
@@ -350,10 +350,10 @@ def Api_send(request):
             header['Content-Type'] = 'application/x-www-form-urlencoded'
             payload = {}
             for i in eval(ts_api_body):
-                payload[i[0]] = i[1]
+                payload += ((i[0], i[1]),)
             if type(login_res) == dict:
                 for i in login_res.keys():
-                    payload[i] = login_res[i]
+                    payload += ((i, login_res[i]),)
                 response = requests.request(ts_method.upper(), url, headers=header, data=payload)
             else:
                 response = login_res.request(ts_method.upper(), url, headers=header, data=payload)
@@ -455,13 +455,13 @@ def error_request(request):
             files = []
             payload = {}
             for i in eval(new_body):
-                payload[i[0]] = i[1]
+                payload += ((i[0], i[1]),)
             response = requests.request(method.upper(), url, headers=header, data=payload, files=files)
         elif body_method == 'x-www-form-urlencoded':
             header['Content-Type'] = 'application/x-www-form-urlencoded'
             payload = {}
             for i in eval(new_body):
-                payload[i[0]] = i[1]
+                payload += ((i[0], i[1]),)
             response = requests.request(method.upper(), url, headers=header, data=payload)
         elif body_method == 'Json':
             header['Content-Type'] = 'text/plain'
@@ -516,14 +516,14 @@ def Api_send_home(request):
             files = []
             payload = {}
             for i in eval(ts_api_body):
-                payload[i[0]] = i[1]
+                payload += ((i[0], i[1]),)
             response = requests.request(ts_method.upper(), url, headers=header, data=payload, files=files)
 
         elif ts_body_method == 'x-www-form-urlencoded':
             header['Content-Type'] = 'application/x-www-form-urlencoded'
             payload = {}
             for i in eval(ts_api_body):
-                payload[i[0]] = i[1]
+                payload += ((i[0], i[1]),)
             response = requests.request(ts_method.upper(), url, headers=header, data=payload)
 
         elif ts_body_method == 'GraphQL':
@@ -866,7 +866,7 @@ def project_login_send(request):
             files = []
             payload = {}
             for i in eval(login_api_body):
-                payload[i[0]] = i[1]
+                payload += ((i[0], i[1]),)
             if login_response_set == 'cookie':
                 a = requests.session()
                 a.request(login_method.upper(), url, headers=header, data=payload, files=files)
@@ -878,7 +878,7 @@ def project_login_send(request):
             header['Content-Type'] = 'application/x-www-form-urlencoded'
             payload = {}
             for i in eval(login_api_body):
-                payload[i[0]] = i[1]
+                payload += ((i[0], i[1]),)
             if login_response_set == 'cookie':
                 a = requests.session()
                 a.request(login_method.upper(), url, headers=header, data=payload)
@@ -988,14 +988,14 @@ def project_login_send_for_other(project_id):
             files = []
             payload = {}
             for i in eval(login_api_body):
-                payload[i[0]] = i[1]
+                payload += ((i[0], i[1]),)
             response = requests.request(login_method.upper(), url, headers=header, data=payload, files=files )
 
         elif login_body_method == 'x-www-form-urlencoded':
             header['Content-Type'] = 'application/x-www-form-urlencoded'
             payload = {}
             for i in eval(login_api_body):
-                payload[i[0]] = i[1]
+                payload += ((i[0], i[1]),)
             response = requests.request(login_method.upper(), url, headers=header, data=payload )
 
         elif login_body_method == 'GraphQL':
@@ -1067,13 +1067,28 @@ def global_data(request, id):
     return render(request, 'welcome.html', {"whichHTML": "P_global_data.html", "oid": project_id, **glodict(request)})
 
 
+# 增加一个全局变量
+def global_data_add(request):
+    project_id = request.GET['project_id']
+    user_id = DB_project.objects.filter(id=project_id)[0].user_id
+    DB_global_data.objects.create(name='新变量', data='', user_id=user_id)
+    return HttpResponse('')
 
 
+# 删除一个全局变量
+def global_data_delete(request):
+    id = request.GET['id']
+    DB_global_data.objects.filter(id=id).delete()
+    return HttpResponse('删除成功')
 
 
-
-
-
+# 保存一个全局变量
+def global_data_save(request):
+    global_id = request.GET['global_id']
+    global_name = request.GET['global_name']
+    global_data = request.GET['global_data']
+    DB_global_data.objects.filter(id=global_id).update(name=global_name, data=global_data)
+    return HttpResponse('')
 
 
 

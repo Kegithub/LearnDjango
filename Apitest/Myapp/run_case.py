@@ -127,10 +127,10 @@ class Test(unittest.TestCase):
                 files = []
                 payload = {}
                 for i in eval(api_body):
-                    payload[i[0]] = i[1]
+                    payload += ((i[0], i[1]),)
                 if type(login_res) == dict:
                     for i in login_res.keys():
-                        payload[i] = login_res[i]
+                        payload += ((i, login_res[i]),)
                     response = requests.request(api_method.upper(), url, headers=header, data=payload, files=files)
                 else:
                     response = login_res.request(api_method.upper(), url, headers=header, data=payload, files=files)
@@ -139,9 +139,9 @@ class Test(unittest.TestCase):
                 header['Content-Type'] = 'application/x-www-form-urlencoded'
                 payload = {}
                 for i in eval(api_body):
-                    payload[i[0]] = i[1]
+                    payload += ((i[0], i[1]),)
                 for i in login_res.keys():
-                    payload[i] = login_res[i]
+                    payload += ((i, login_res[i]),)
                 if type(login_res) == dict:
                     response = requests.request(api_method.upper(), url, headers=header, data=payload)
                 else:

@@ -73,6 +73,9 @@ urlpatterns = [
     path('home_save_api/', home_save_api),  # 首页保存请求数据
     path('search/', search),  # 首页搜索功能
     re_path(r'^global_data/(?P<id>.*)/$', global_data),  # 进入全局变量
+    path('global_data_add/', global_data_add),  # 增加全局变量
+    path('global_data_delete/', global_data_delete),  # 删除一个全局变量
+    path('global_data_save/', global_data_save),  # 保存一个全局变量
 
     # -----小工具------ #
     path('tools_zhengjiao/', zhengjiao),  # 进入正交工具页面
