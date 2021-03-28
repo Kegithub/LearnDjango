@@ -72,6 +72,7 @@ urlpatterns = [
     path('project_login_send/', project_login_send),  # 调试登录态接口
     path('home_save_api/', home_save_api),  # 首页保存请求数据
     path('search/', search),  # 首页搜索功能
+    re_path(r'^global_data/(?P<id>.*)/$', global_data),  # 进入全局变量
 
     # -----小工具------ #
     path('tools_zhengjiao/', zhengjiao),  # 进入正交工具页面
